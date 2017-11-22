@@ -1,0 +1,31 @@
+[[source]]
+
+verify_ssl = true
+url = "https://pypi.python.org/simple"
+name = "pypi"
+
+
+[dev-packages]
+
+ipython = "*"
+pylint = "*"
+
+
+[requires]
+
+python_version = "3.6"
+
+
+[packages]
+
+requests = "*"
+"beautifulsoup4" = "*"
+youtube-dl = "*"
+librosa = "*"
+pysoundfile = "*"
+numpy = "*"
+pandas = "*"
+sklearn = "*"
+feedgen = "*"
+peewee = "*"
+matplotlib = "*"
