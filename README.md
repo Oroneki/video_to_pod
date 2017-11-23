@@ -29,7 +29,7 @@ Verifique o próprio arquivo .env (ou .env.example) para exemplos.
 
 
 #### ARQUIVO_MODELO
-Modelo de Machine Learning Compilado
+Caminho do arquivo com o modelo de Machine Learning compilado
 
 
 #### PASTA_DOWNLOAD
