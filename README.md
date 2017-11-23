@@ -20,26 +20,39 @@
 >```pipenv run python main.py && pipenv run python -m http.server 8000```
 5. Enjoy :)
 
+***
+
 ## Variáveis de Ambiente do arquivo _.env_
-```
-# Modelo de Machine Learning Compilado
-ARQUIVO_MODELO="novo_modelo.pkl"
+Verifique o próprio arquivo .env (ou .env.example) para exemplos.
 
-# Pasta de Download do Sistema pra baixar do YouTube
-PASTA_DOWNLOAD="/home/USER/Downloads"
 
-# Pasta que será servida com os arquivos do podcast
-# OBS: Todos os arquivos da pasta serão públicos
-PASTA_SERVER="/home/USER/Downloads/podcasts"
+##### ARQUIVO_MODELO
+Modelo de Machine Learning Compilado
 
-# PASTA para salvar estatisticas e etc...
-PASTA_LOG="/home/USER/Downloads/logs"
 
-# O ideal é o ffmpeg estar no PATH do sistema. Se não estiver, informar o caminho completo abaixo
-# ex: "/usr/bin/ffmpeg"
-FFMPEG_3_PATH="ffmpeg"
+##### PASTA_DOWNLOAD
+Pasta de Download do Sistema pra baixar do YouTube
 
-# Endereço do servidor na rede. OBS: Configurar o roteador para IP Fixo da Máquina (RaspberryPi)
-# SERVER_END="http://fixed_ip_number:port"
-SERVER_END="http://192.168.1.106:8000"
-```
+
+##### PASTA_SERVER
+Pasta que será servida com os arquivos do podcast
+
+OBS: Todos os arquivos da pasta serão públicos
+
+
+##### PASTA_LOG
+PASTA para salvar estatisticas e etc...
+
+
+##### FFMPEG_3_PATH
+O ideal é o ffmpeg estar no PATH do sistema. Se não estiver, informar o caminho completo.
+
+A versão deve ser a 3 ou maior. Algumas versões do linux vem com versão 2. Atualizar pelo apt-get nem sempre funciona.
+
+Recomendo o ppa *jonathonf/ffmpeg-3* para usuários Ubuntu ou Linux Mint.
+
+##### SERVER_END
+Endereço do servidor na rede. OBS: Configurar o roteador para IP Fixo da Máquina (RaspberryPi)
+
+exemplo: `SERVER_END="http://192.168.1.106:8000"`
+
