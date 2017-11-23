@@ -8,7 +8,9 @@ server_end = os.environ['SERVER_END']
 
 def makeFeed(pasta):
 
-    endereco_feed = os.path.join(pasta, 'edacoisa.xml')
+    nome_arquivo_xml = 'edacoisa.xml'
+
+    endereco_feed = os.path.join(pasta, nome_arquivo_xml)
     fg = FeedGenerator()
 
     fg.title('O É da Coisa - BandNewsFM')
@@ -28,7 +30,7 @@ def makeFeed(pasta):
         fe.description(f'O É da Coisa - BandNewsFM.\n{pod.nome}\n{pod.youtube_id}')
 
     fg.rss_file(endereco_feed)
-    return endereco_feed
+    return nome_arquivo_xml
 
 def main():
     makeFeed(pasta)
