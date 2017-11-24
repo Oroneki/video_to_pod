@@ -22,7 +22,8 @@ def main():
     print('baixar :', h3-h2, sep ="\t")
     print('magica :', h4-h3, sep ="\t")
     print('TEMPO  :', h5-h1, sep ="\t")
-    print(f'''\nACESSE EM:\n{os.environ.get("SERVER_END")/{xml}}\n''')
+    end = os.environ.get('SERVER_END')
+    print(f'''\nACESSE EM:\n{end}/{xml}\n''')
 
     
 if __name__ == '__main__':
