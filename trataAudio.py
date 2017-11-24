@@ -104,7 +104,7 @@ def facaAmagica(arquivo_de_audio, novo_nome):
     print('Array com probabilidades ok')
     dfprobs = pd.DataFrame(probs, columns=rfc.classes_)
     print('dataframe')
-    seq_diff = dfprobs['COMERCIAL'] - dfprobs['REI']
+    seq_diff = dfprobs['COMERCIAL'] + dfprobs['SILENCIO'] - dfprobs['REI']
     decisao_seq = algmain(seq_diff)
     print('temos a sequencia de 0 e 1s')
 
