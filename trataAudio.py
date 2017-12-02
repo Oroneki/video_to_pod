@@ -1,23 +1,22 @@
-import numpy as np
-from sklearn.externals import joblib
-import librosa
-import soundfile as sf
-import matplotlib.pyplot as plt
-from sklearn import preprocessing as pp
-# from sklearn.ensemble import RandomForestClassifier as RFC
-import pandas as pd
-import sys
 import os
 import shutil
-import time
+import sys
 import tempfile
-from model import Podcast
+import time
 from datetime import datetime
-from subprocess import run, PIPE
+from subprocess import PIPE, run
+import librosa
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import soundfile as sf
+from sklearn import preprocessing as pp
+from sklearn.externals import joblib
 
+from algoritmos import main as algmain
 from feed import pasta
 from grab import pasta_download
-from algoritmos import main as algmain
+from model import Podcast
 
 arquivo_modelo = os.environ.get('ARQUIVO_MODELO', None)
 if not arquivo_modelo:
@@ -34,16 +33,16 @@ if not pasta_log:
 ffcmd = os.environ.get('FFMPEG_3_PATH', 'ffmpeg')
 
 
-
 def smoothSeq(seq, step):
     l = len(seq)
-    new_seq = []    
+    new_seq = []
     for a in range(0, l, step):
-        sub = seq[a:a+step]
-        med = sum(sub)/step              
-        for el in range(len(sub)):
+        sub = seq[a:a + step]
+        med = sum(sub) / step
+        for _ in range(len(sub)):
             new_seq.append(med)
     return np.array(new_seq)
+
 
 def decisaoSimples(seq_prob_ok, seq_prob_not_ok, seq_silencio):
     if not len(seq_prob_ok) == len(seq_prob_not_ok) == len(seq_silencio):
@@ -74,8 +73,8 @@ def decisaoSimples(seq_prob_ok, seq_prob_not_ok, seq_silencio):
 def facaAmagica(arquivo_de_audio, novo_nome):
 
     arquivo_de_audio, tmp_dir = fmpeg_convert_to_ogg(arquivo_de_audio)
-    
-    rfc = joblib.load(arquivo_modelo) # atualizar modelo
+
+    rfc = joblib.load(arquivo_modelo)  # atualizar modelo
     rate = sf.info(arquivo_de_audio).samplerate
     channels = sf.info(arquivo_de_audio).channels
     endian = sf.info(arquivo_de_audio).endian
@@ -87,7 +86,7 @@ def facaAmagica(arquivo_de_audio, novo_nome):
         m1 = librosa.feature.melspectrogram(y)
         lis = []
         for el in m1:
-            lis.append(el.mean()) 
+            lis.append(el.mean())
         tudo.append(lis)
         time.sleep(.005)
         if u % 10 == 0:
@@ -113,21 +112,21 @@ def facaAmagica(arquivo_de_audio, novo_nome):
     plt.plot(decisao_seq, 'r-', alpha=1)
     plt.savefig(os.path.join(pasta_log, novo_nome + '.png'))
 
-    block_gen = sf.blocks(arquivo_de_audio, blocksize=rate)    
-    
+    block_gen = sf.blocks(arquivo_de_audio, blocksize=rate)
+
     dst = os.path.join(pasta, novo_nome + '.mp3')
     with tempfile.TemporaryDirectory() as tmpdirname:
         print('created temporary directory', tmpdirname)
         src = os.path.join(tmpdirname, 'f.ogg')
         sffile = sf.SoundFile(
             src,
-            'w', 
-            samplerate = rate, 
-            channels = channels,
-            format = 'ogg', 
-            subtype = 'vorbis',
-            endian = endian
-            )
+            'w',
+            samplerate=rate,
+            channels=channels,
+            format='ogg',
+            subtype='vorbis',
+            endian=endian
+        )
 
         print('iterar novamente')
 
@@ -144,16 +143,17 @@ def facaAmagica(arquivo_de_audio, novo_nome):
         sffile.close()
 
         mp3_convert = convertToMP3(src, tmpdirname)
-        
+
         shutil.move(mp3_convert, dst)
         tmp_dir.cleanup()
     return dst
 
+
 def transformarEAtualizar():
     for pod in Podcast.select().where(Podcast.fase == 1):
         new_file = '{}_{}_{}-{}'.format(
-            pod.data.year, 
-            pod.data.month, 
+            pod.data.year,
+            pod.data.month,
             pod.data.day,
             'edacoisa'
         )
@@ -163,8 +163,9 @@ def transformarEAtualizar():
             new_file
         )
         pod.arquivo_podcast = os.path.basename(pod_file)
-        pod.fase = 2        
+        pod.fase = 2
         pod.save()
+
 
 def fmpeg_convert_to_ogg(intro_file):
     dire = tempfile.TemporaryDirectory()
@@ -184,36 +185,34 @@ def fmpeg_convert_to_ogg(intro_file):
 
     return dst, dire
 
+
 def convertToMP3(intro_file, dirname):
-    
+
     outfile = os.path.join(dirname, 'output.mp3')
-    
+
     ll = [
-    ffcmd,
-    '-i',
-    intro_file,
-    '-codec:a',
-    'libmp3lame',
-    '-qscale:a',
-    '7',
-    '-filter:a', #apenas pra ffmpeg acima da versao 3 
-    'loudnorm=I=-5', ###### esse tb
-    outfile
+        ffcmd,
+        '-i',
+        intro_file,
+        '-codec:a',
+        'libmp3lame',
+        '-qscale:a',
+        '7',
+        '-filter:a',  # apenas pra ffmpeg acima da versao 3
+        'loudnorm=I=-5',  # esse tb
+        outfile
     ]
-    
+
     run(ll, stdout=PIPE)
 
     return outfile
-
-
-
-    
 
 
 def main():
     print(datetime.now())
     transformarEAtualizar()
     print(datetime.now())
+
 
 if __name__ == '__main__':
     main()

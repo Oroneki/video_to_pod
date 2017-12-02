@@ -1,6 +1,6 @@
 import http.server
-import socketserver
 import os
+import socketserver
 import sys
 
 PORT = os.environ.get('SERVER_END').split(':')[-1]
