@@ -1,20 +1,18 @@
-import requests
-from bs4 import BeautifulSoup as BS4
-from collections import namedtuple as NT
-import re
-import youtube_dl
 import os
+import re
+from datetime import datetime
+import requests
+import youtube_dl
+from bs4 import BeautifulSoup as BS4
 
-from datetime import date, datetime
-
-from model import db, Podcast
+from model import Podcast
 
 pasta_download = os.environ['PASTA_DOWNLOAD']
 
 def atualizaListaYouTube():
 
-    reg_search = re.compile('.*O\s+É\s+da\s+Coisa.*\d{2}.*')
-    reg_id = re.compile("\/watch\?v=(?P<id>.*)")
+    reg_search = re.compile(r'.*O\s+É\s+da\s+Coisa.*\d{2}.*')
+    reg_id = re.compile(r"\/watch\?v=(?P<id>.*)")
     
     r = requests.get("https://www.youtube.com/channel/UCWijW6tW0iI5ghsAbWDFtTg/videos")
     soup = BS4(r.content, "html.parser")
@@ -40,7 +38,7 @@ def atualizaListaYouTube():
     return col
 
 def getData(string_com_data):
-    reg_data = re.compile("\d{2}\/\d{2}\/\d{4}")
+    reg_data = re.compile(r"\d{2}\/\d{2}\/\d{4}")
     res = reg_data.search(string_com_data).group()
     return datetime.strptime(res, "%d/%m/%Y").date()
 
@@ -51,7 +49,7 @@ def baixaLista(pasta_downloads, lista_de_ids_):
         'outtmpl': str(os.path.join(pasta_downloads, 'REI_%(id)s.%(ext)s')),
         'postprocessors': [{
             'key': 'FFmpegExtractAudio'
-        }]    
+        }]   
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download(lista_de_ids_)
@@ -66,7 +64,7 @@ def baixarNovos(pasta_downloads):
         print('Nada pra baixar... :)')
         return
     print('Atualizar banco de dados...')
-    for p, lp, la in os.walk(pasta_downloads):
+    for _, _, la in os.walk(pasta_downloads):
         for arq in la:
             if not arq.startswith('REI_'): continue
             for id_ in lista_ids:
@@ -80,7 +78,7 @@ def baixarNovos(pasta_downloads):
         break
 
 def main():
-   atualizaListaYouTube()
+    atualizaListaYouTube()
 
 if __name__ == '__main__':
     main()
