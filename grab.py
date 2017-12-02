@@ -47,7 +47,7 @@ def getData(string_com_data):
 
 def baixaLista(pasta_downloads, lista_de_ids_):
     ydl_opts = {
-        'audio-format': 'vorbis',
+        'format': 'bestaudio',
         'outtmpl': str(os.path.join(pasta_downloads, 'REI_%(id)s.%(ext)s')),
         'postprocessors': [{
             'key': 'FFmpegExtractAudio'
