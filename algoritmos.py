@@ -32,7 +32,7 @@ def getBiggerSlicex(seq, p, raio=16, disloc=10, step=1):
     esse = sorted(lis, reverse=True)
     return esse[0][1]
 
-def cortaLegal(seq, raio=16, corte=0):
+def cortaLegal(seq, raio=14, corte=0):
     _, points, _ = seqCoiso(seq, raio=raio, corte=corte)
     neww = np.zeros(len(seq))
     new_points = []
@@ -74,7 +74,7 @@ def cortaLegal(seq, raio=16, corte=0):
 def ajustaMelhorMedia(seqq, new_points):
     mais_uma = np.zeros(len(seqq))
     for point in new_points:
-        dis = getBiggerSlicex(seqq, point[0], raio=point[1], disloc=10, step=1)
+        dis = getBiggerSlicex(seqq, point[0], raio=point[1], disloc=15, step=1)
         print(point, dis)
         mais_uma[point[0]-point[1]+dis:point[0]+point[1]+dis] = 1
     return mais_uma

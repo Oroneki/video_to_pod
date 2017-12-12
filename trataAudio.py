@@ -151,6 +151,8 @@ def convertToMP3(intro_file, dirname):
     ffcmd,
     '-i',
     intro_file,
+    '-ar',
+    '44100',
     '-codec:a',
     'libmp3lame',
     '-qscale:a',

@@ -386,7 +386,7 @@ class AudioFile:
                     print('inf', inf, 'sup', sup, 'control', control)
                     break
                 if sup > len_probas:
-                    print('break no if')
+                    # print('break no if')
                     break
                 control = control + sobra
                 if desloc != int(np.floor(control)):
