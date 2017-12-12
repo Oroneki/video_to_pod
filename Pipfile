@@ -9,6 +9,7 @@ name = "pypi"
 
 ipython = "*"
 pylint = "*"
+autopep8 = "*"
 
 
 [requires]
@@ -21,10 +22,8 @@ python_version = "3.6"
 requests = "*"
 "beautifulsoup4" = "*"
 youtube-dl = "*"
-librosa = "*"
 pysoundfile = "*"
 numpy = "*"
-pandas = "*"
 sklearn = "*"
 feedgen = "*"
 peewee = "*"

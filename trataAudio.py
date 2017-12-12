@@ -1,11 +1,9 @@
 import numpy as np
 from sklearn.externals import joblib
-import librosa
 import soundfile as sf
 import matplotlib.pyplot as plt
 from sklearn import preprocessing as pp
 # from sklearn.ensemble import RandomForestClassifier as RFC
-import pandas as pd
 import sys
 import os
 import shutil
@@ -18,6 +16,8 @@ from subprocess import run, PIPE
 from feed import pasta
 from grab import pasta_download
 from algoritmos import main as algmain
+from matematicas import AudioFile
+
 
 arquivo_modelo = os.environ.get('ARQUIVO_MODELO', None)
 if not arquivo_modelo:
@@ -41,72 +41,31 @@ def smoothSeq(seq, step):
     for a in range(0, l, step):
         sub = seq[a:a+step]
         med = sum(sub)/step              
-        for el in range(len(sub)):
+        for _ in range(len(sub)):
             new_seq.append(med)
     return np.array(new_seq)
-
-def decisaoSimples(seq_prob_ok, seq_prob_not_ok, seq_silencio):
-    if not len(seq_prob_ok) == len(seq_prob_not_ok) == len(seq_silencio):
-        print('Sequencias devem ser iguais')
-        return None
-    nova_seq = []
-    for b, r, s in zip(seq_prob_ok, seq_prob_not_ok, seq_silencio):
-        if s > 0.85:
-            nova_seq.append(0)
-            continue
-        if r - b > 0.15:
-            nova_seq.append(0)
-            continue
-        else:
-            if b > 0.6:
-                nova_seq.append(1)
-                continue
-            else:
-                if r > 0.6:
-                    nova_seq.append(0)
-                    continue
-                else:
-                    nova_seq.append(1)
-                    continue
-    return nova_seq
 
 
 def facaAmagica(arquivo_de_audio, novo_nome):
 
     arquivo_de_audio, tmp_dir = fmpeg_convert_to_ogg(arquivo_de_audio)
-    
-    rfc = joblib.load(arquivo_modelo) # atualizar modelo
     rate = sf.info(arquivo_de_audio).samplerate
     channels = sf.info(arquivo_de_audio).channels
-    endian = sf.info(arquivo_de_audio).endian
-    block_gen = sf.blocks(arquivo_de_audio, blocksize=rate)
-    tudo = []
-    print('Iterando pelos blocos...')
-    for u, bl in enumerate(block_gen):
-        y = np.mean(bl, axis=1)
-        m1 = librosa.feature.melspectrogram(y)
-        lis = []
-        for el in m1:
-            lis.append(el.mean()) 
-        tudo.append(lis)
-        time.sleep(.005)
-        if u % 10 == 0:
-            print('.', end='')
-        if u % 1500 == 0:
-            print('!', end='\n')
-
-    max_blocks = len(tudo)
-    print(max_blocks, 'blocos.')
-    mm = pp.MinMaxScaler()
-    tudo = mm.fit_transform(np.array(tudo).transpose()).transpose()
-    print('transfomando pra escalar')
-    probs = rfc.predict_proba(tudo)
-    print('Array com probabilidades ok')
-    dfprobs = pd.DataFrame(probs, columns=rfc.classes_)
-    print('dataframe')
-    seq_diff = dfprobs['COMERCIAL'] + dfprobs['SILENCIO'] - dfprobs['REI']
+    endian = sf.info(arquivo_de_audio).endian    
+    rfc = joblib.load(arquivo_modelo)
+    # -----------------------------------------------------------
+    audio_file_obj_inst = AudioFile(arquivo_de_audio)
+    audio_file_obj_inst._lazy_load()
+    probas = audio_file_obj_inst.array_of_probas(
+        modelo = rfc,
+        scaler = pp.MaxAbsScaler()
+    )
+    
+    seq_diff = probas[4] + probas[1] - probas[0]
     decisao_seq = algmain(seq_diff)
     print('temos a sequencia de 0 e 1s')
+
+    # -------------------------------------------------
 
     plt.figure(figsize=(16, 6))
     plt.plot(seq_diff, 'y-', alpha=0.8)
