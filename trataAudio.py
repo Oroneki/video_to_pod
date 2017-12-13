@@ -156,7 +156,7 @@ def convertToMP3(intro_file, dirname):
     '-codec:a',
     'libmp3lame',
     '-qscale:a',
-    '7',
+    '8',
     '-filter:a', #apenas pra ffmpeg acima da versao 3 
     'loudnorm=I=-5', ###### esse tb
     outfile
@@ -171,10 +171,13 @@ def convertToMP3(intro_file, dirname):
     
 
 
-def main():
+def teste_magic(arquivo_baixado):
     print(datetime.now())
-    transformarEAtualizar()
+    print('Arquivo baixado:', arquivo_baixado)
+    dst = facaAmagica(arquivo_baixado, 'teste' + datetime.now().strftime(r'%y%j%H_%m_%S'))
     print(datetime.now())
+    print(dst)
+
 
 if __name__ == '__main__':
-    main()
+    teste_magic(sys.argv[1])
