@@ -73,7 +73,7 @@ def facaAmagica(arquivo_de_audio, novo_nome, log_png=True, log_output_labels=Tru
         labels_from_0e1s(decisao_seq, os.path.join(
             pasta_log, novo_nome + '_labels.txt'))
     if log_png:
-        plt.figure(figsize=(16, 6))
+        plt.figure(figsize=(12, 4))
         plt.plot(seq_diff, 'y-', alpha=0.8)
         plt.plot(decisao_seq, 'r-', alpha=1)
         plt.savefig(os.path.join(pasta_log, novo_nome + '.png'))
@@ -181,7 +181,7 @@ def teste_magic(arquivo_baixado):
     print(datetime.now())
     print('Arquivo baixado:', arquivo_baixado)
     dst = facaAmagica(arquivo_baixado, 'teste' +
-                      datetime.now().strftime(r'%y%j%H_%m_%S'), keep_integral_ogg_file=True)
+                      datetime.now().strftime(r'%y%j%H_%M_%S'), keep_integral_ogg_file=True)
     print(datetime.now())
     print(dst)
 
