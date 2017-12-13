@@ -15,7 +15,7 @@ from subprocess import run, PIPE
 
 from feed import pasta
 from grab import pasta_download
-from algoritmos import main as algmain
+from algoritmos import main as algmain, labels_from_0e1s
 from matematicas import AudioFile
 
 
@@ -46,7 +46,7 @@ def smoothSeq(seq, step):
     return np.array(new_seq)
 
 
-def facaAmagica(arquivo_de_audio, novo_nome):
+def facaAmagica(arquivo_de_audio, novo_nome, log = True):
 
     arquivo_de_audio, tmp_dir = fmpeg_convert_to_ogg(arquivo_de_audio)
     rate = sf.info(arquivo_de_audio).samplerate
@@ -65,12 +65,14 @@ def facaAmagica(arquivo_de_audio, novo_nome):
     decisao_seq = algmain(seq_diff)
     print('temos a sequencia de 0 e 1s')
 
-    # -------------------------------------------------
 
-    plt.figure(figsize=(16, 6))
-    plt.plot(seq_diff, 'y-', alpha=0.8)
-    plt.plot(decisao_seq, 'r-', alpha=1)
-    plt.savefig(os.path.join(pasta_log, novo_nome + '.png'))
+    # -------------------------------------------------
+    if log:
+        labels_from_0e1s(decisao_seq, os.path.join(pasta_log, novo_nome + '_labels.txt'))
+        plt.figure(figsize=(16, 6))
+        plt.plot(seq_diff, 'y-', alpha=0.8)
+        plt.plot(decisao_seq, 'r-', alpha=1)
+        plt.savefig(os.path.join(pasta_log, novo_nome + '.png'))
 
     block_gen = sf.blocks(arquivo_de_audio, blocksize=rate)    
     

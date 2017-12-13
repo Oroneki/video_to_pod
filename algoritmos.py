@@ -82,3 +82,37 @@ def ajustaMelhorMedia(seqq, new_points):
 def main(seqq):
     _, pontos = cortaLegal(seqq)
     return ajustaMelhorMedia(seqq, pontos)
+
+def labels_from_0e1s(seq, arquivo):
+    ini = None
+    pos = 0
+    last = None
+    lis = []
+    lab = None
+    while True:
+        if lab is None:
+            lab = seq[pos]        
+            pos = pos + 1
+#             print('lab')
+            continue
+        try:
+            if seq[pos] == lab:
+    #             print('...cont', pos, seq[pos])
+                pos = pos + 1            
+                continue
+            if last is None:
+                last = 0
+            print('mudou', lab, pos, seq[pos])
+            lis.append((last, pos-1, lab))
+            last = pos
+            lab = seq[pos]
+            pos = pos + 1
+        except:
+#             print('EXCEPT')
+            break
+    with open(arquivo, 'w') as f:
+        for t in lis:
+            if t[2] == 0:
+                continue
+            lin = '{}\t{}\t{}\r\n'.format(t[0], t[1], t[2])
+            f.write(lin)
