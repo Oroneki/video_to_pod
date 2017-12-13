@@ -32,7 +32,7 @@ def getBiggerSlicex(seq, p, raio=16, disloc=10, step=1):
     esse = sorted(lis, reverse=True)
     return esse[0][1]
 
-def cortaLegal(seq, raio=14, corte=0):
+def cortaLegal(seq, raio=16, corte=0):
     _, points, _ = seqCoiso(seq, raio=raio, corte=corte)
     neww = np.zeros(len(seq))
     new_points = []
@@ -114,5 +114,5 @@ def labels_from_0e1s(seq, arquivo):
         for t in lis:
             if t[2] == 0:
                 continue
-            lin = '{}\t{}\t{}\r\n'.format(t[0], t[1], t[2])
+            lin = '{}\t{}\t{}\r\n'.format(t[0], t[1], 'corta')
             f.write(lin)
