@@ -1,8 +1,10 @@
-import numpy as np
+import os
 import sqlite3
+
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.externals import joblib
-import os
+
 
 def treina(db_valores, db_labels, caminho_modelo):
     conn = sqlite3.connect(db_valores)
