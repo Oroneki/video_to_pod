@@ -116,3 +116,4 @@ venv.bak/
 
 # ESPECIFICOS
 podcasts.db
+novo_modelo_treinado.pkl
