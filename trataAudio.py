@@ -220,8 +220,7 @@ def teste_magic(arquivo_baixado):
                       datetime.now().strftime(r'%y_%j_%H_%M_%S'), keep_files=True)
     print(datetime.now())
     print(dst)
-    for k, v in sorted(stats.items()):
-        print(k, v)
+    print(json.dumps(stats, sort_keys=True, indent=2))
 
 
 if __name__ == '__main__':
