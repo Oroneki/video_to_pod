@@ -149,6 +149,7 @@ def facaAmagica(arquivo_de_audio,
     if not keep_files:
         shutil.rmtree(PASTA_TEMP)
 
+    stats['PASTA_TEMP'] = str(PASTA_TEMP)
     return dst, stats
 
 
@@ -202,7 +203,7 @@ def convertToMP3(intro_file, dirname):
         '-codec:a',
         'libmp3lame',
         '-qscale:a',
-        '8',
+        '9',
         '-filter:a',  # apenas pra ffmpeg acima da versao 3
         'loudnorm=I=-5',  # esse tb
         outfile
