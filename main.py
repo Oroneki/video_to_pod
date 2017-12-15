@@ -10,7 +10,10 @@ def main():
     h1 = dt.now()
     atualizaListaYouTube()
     h2 = dt.now()
-    baixarNovos(pasta_download)
+    try:
+        baixarNovos(pasta_download)
+    except:
+        print('Erro no download')    
     h3 = dt.now()
     transformarEAtualizar()
     h4 = dt.now()

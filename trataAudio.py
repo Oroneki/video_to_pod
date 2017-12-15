@@ -73,8 +73,6 @@ def facaAmagica(arquivo_de_audio, novo_nome, log_png=True, log_output_labels=Tru
         labels_from_0e1s(decisao_seq, os.path.join(
             pasta_log, novo_nome + '_labels.txt'))
     if log_png:
-        import matplotlib
-        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         plt.figure(figsize=(12, 4))
         plt.plot(seq_diff, 'y-', alpha=0.8)
