@@ -13,6 +13,8 @@ from model import Podcast
 from datetime import datetime
 from subprocess import run, PIPE
 import pathlib
+import random
+import string
 
 from feed import pasta
 from grab import pasta_download
@@ -54,7 +56,8 @@ def facaAmagica(arquivo_de_audio,
     keep_files = False
     ):
 
-    PASTA_TEMP = pathlib.Path(TMP_DIR).joinpath(novo_nome)
+    rand = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+    PASTA_TEMP = pathlib.Path(TMP_DIR).joinpath(novo_nome + '_' + rand)
     PASTA_TEMP.mkdir()   
 
     arquivo_de_audio = fmpeg_convert_to_ogg(
