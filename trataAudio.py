@@ -15,6 +15,7 @@ from subprocess import run, PIPE
 import pathlib
 import random
 import string
+import json
 
 from feed import pasta
 from grab import pasta_download
@@ -56,32 +57,47 @@ def facaAmagica(arquivo_de_audio,
     keep_files = False
     ):
 
+    stats = {}
+
+    
+
     rand = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
     PASTA_TEMP = pathlib.Path(TMP_DIR).joinpath(novo_nome + '_' + rand)
     PASTA_TEMP.mkdir()   
 
+    d1 = datetime.now()
     arquivo_de_audio = fmpeg_convert_to_ogg(
-        arquivo_de_audio, 
-        novo_nome + '_integral.ogg',
+        arquivo_de_audio,
+        'integral.ogg',
         PASTA_TEMP)
+    stats['00_ogg'] = str(datetime.now() - d1)
+
+    
 
     rate = sf.info(arquivo_de_audio).samplerate
     channels = sf.info(arquivo_de_audio).channels
     endian = sf.info(arquivo_de_audio).endian
+    d1 = datetime.now()
     rfc = joblib.load(arquivo_modelo)
+    
+    stats['01_carrega_modelo'] = str(datetime.now() - d1)
     # -----------------------------------------------------------
+    d1 = datetime.now()
     audio_file_obj_inst = AudioFile(arquivo_de_audio)
     audio_file_obj_inst._lazy_load()
+    stats['02_carrega_audio'] = str(datetime.now() - d1)
+    d1 = datetime.now()
     probas = audio_file_obj_inst.array_of_probas(
         modelo=rfc,
         scaler=pp.MaxAbsScaler()
     )
-
+    stats['03_calcula_probas'] = str(datetime.now() - d1)
     seq_diff = probas[4] + probas[1] - probas[0]
+    d1 = datetime.now()
     decisao_seq = algmain(seq_diff)
-    print('temos a sequencia de 0 e 1s')
-    segundos_cortados = decisao_seq.count_nonzero()
-    print(segundos_cortados, 'segundos cortados')
+    stats['04_calcula_0e1s'] = str(datetime.now() - d1)
+    print('temos a sequencia de 0 e 1s')    
+    stats['segundos_cortados'] = np.count_nonzero(decisao_seq)    
     # -------------------------------------------------
     if log_output_labels:
         labels_from_0e1s(decisao_seq, os.path.join(
@@ -93,10 +109,11 @@ def facaAmagica(arquivo_de_audio,
         plt.plot(decisao_seq, 'r-', alpha=1)
         plt.savefig(os.path.join(pasta_log, novo_nome + '.png'))
 
+
     block_gen = sf.blocks(arquivo_de_audio, blocksize=rate)
 
     # arquivo final mp3
-    src = str(PASTA_TEMP.joinpath('final_cortado.ogg'))
+    src = str(PASTA_TEMP.joinpath('cortado.ogg'))
     dst = str(os.path.join(pasta, novo_nome + '.mp3'))
 
     sffile = sf.SoundFile(
@@ -110,7 +127,7 @@ def facaAmagica(arquivo_de_audio,
     )
 
     print('iterar novamente')
-
+    d1 = datetime.now()
     # print('ufa... gravar audio.')
     for i, bl in enumerate(block_gen):
         if decisao_seq[i] == 1:
@@ -122,15 +139,17 @@ def facaAmagica(arquivo_de_audio,
             time.sleep(.01)
             print('.', end='')
     sffile.close()
+    stats['05_cria_ogg_cortado'] = str(datetime.now() - d1)
 
+    d1 = datetime.now()
     mp3_convert = convertToMP3(src, PASTA_TEMP)
-
+    stats['06_converte_mp3'] = str(datetime.now() - d1)
     shutil.move(mp3_convert, dst)
 
     if not keep_files:
         shutil.rmtree(PASTA_TEMP)
 
-    return dst, segundos_cortados
+    return dst, stats
 
 
 def transformarEAtualizar():
@@ -142,13 +161,13 @@ def transformarEAtualizar():
             'edacoisa'
         )
 
-        pod_file, segundos_cortados = facaAmagica(
+        pod_file, stats = facaAmagica(
             os.path.join(pasta_download, pod.arquivo_baixado),
             new_file
         )
         pod.arquivo_podcast = os.path.basename(pod_file)
         pod.fase = 2
-        pod.segundos_cortados = segundos_cortados
+        pod.stats = json.dumps(stats)
         pod.save()
 
 
@@ -197,10 +216,12 @@ def convertToMP3(intro_file, dirname):
 def teste_magic(arquivo_baixado):
     print(datetime.now())
     print('Arquivo baixado:', arquivo_baixado)
-    dst = facaAmagica(arquivo_baixado, 't_' +
+    dst, stats = facaAmagica(arquivo_baixado, 't_' +
                       datetime.now().strftime(r'%y_%j_%H_%M_%S'), keep_files=True)
     print(datetime.now())
     print(dst)
+    for k, v in sorted(stats.items()):
+        print(k, v)
 
 
 if __name__ == '__main__':
