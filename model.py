@@ -12,7 +12,7 @@ class Podcast(Model):
     arquivo_baixado = CharField(null = True)
     arquivo_podcast = CharField(null = True)
     duracao = CharField(null = True)
-    extra1 = CharField(null = True, db_column = "ext_1")
+    stats = CharField(null = True, db_column = "ext_1")
     extra2 = CharField(null = True, db_column = "ext_2")
     extra3 = CharField(null = True, db_column = "ext_3")
     extra4 = CharField(null = True, db_column = "ext_4")

@@ -1,5 +1,6 @@
 from feedgen.feed import FeedGenerator
 import os
+import json
 from model import Podcast
 
 pasta = os.environ['PASTA_SERVER']
@@ -27,7 +28,10 @@ def makeFeed(pasta):
         fe.guid(pod.youtube_id)
         fe.title(pod.nome.replace(', com Reinaldo Azevedo -', ''))
         fe.link(href=f'{server_end}/{pod.arquivo_podcast}')
-        fe.description(f'O É da Coisa - BandNewsFM.\n{pod.nome}\n{pod.youtube_id}')
+        stats = json.loads(pod.stats)
+        corte = int(stats['segundos_cortados']) / 60
+        estatisticas = json.dumps(stats, sort_keys=True, indent=2)
+        fe.description(f'O É da Coisa - BandNewsFM.\n{pod.nome}\n{pod.youtube_id}\n{corte:.2f} minutos cortados.\n\n{estatisticas}')
 
     fg.rss_file(endereco_feed)
     return nome_arquivo_xml
