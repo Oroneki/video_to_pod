@@ -199,7 +199,7 @@ def convertToMP3(intro_file, dirname):
         '-i',
         intro_file,
         '-ar',
-        '44100',
+        '22050',
         '-codec:a',
         'libmp3lame',
         '-qscale:a',
