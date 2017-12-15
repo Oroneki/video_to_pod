@@ -77,7 +77,8 @@ def facaAmagica(arquivo_de_audio,
     seq_diff = probas[4] + probas[1] - probas[0]
     decisao_seq = algmain(seq_diff)
     print('temos a sequencia de 0 e 1s')
-
+    segundos_cortados = decisao_seq.count_nonzero()
+    print(segundos_cortados, 'segundos cortados')
     # -------------------------------------------------
     if log_output_labels:
         labels_from_0e1s(decisao_seq, os.path.join(
@@ -126,7 +127,7 @@ def facaAmagica(arquivo_de_audio,
     if not keep_files:
         shutil.rmtree(PASTA_TEMP)
 
-    return dst
+    return dst, segundos_cortados
 
 
 def transformarEAtualizar():
@@ -137,13 +138,14 @@ def transformarEAtualizar():
             pod.data.day,
             'edacoisa'
         )
-        print(new_file)
-        pod_file = facaAmagica(
+
+        pod_file, segundos_cortados = facaAmagica(
             os.path.join(pasta_download, pod.arquivo_baixado),
             new_file
         )
         pod.arquivo_podcast = os.path.basename(pod_file)
         pod.fase = 2
+        pod.segundos_cortados = segundos_cortados
         pod.save()
 
 
@@ -192,8 +194,8 @@ def convertToMP3(intro_file, dirname):
 def teste_magic(arquivo_baixado):
     print(datetime.now())
     print('Arquivo baixado:', arquivo_baixado)
-    dst = facaAmagica(arquivo_baixado, 'teste' +
-                      datetime.now().strftime(r'%y%j%H_%M_%S'), keep_files=True)
+    dst = facaAmagica(arquivo_baixado, 't_' +
+                      datetime.now().strftime(r'%y_%j_%H_%M_%S'), keep_files=True)
     print(datetime.now())
     print(dst)
 
