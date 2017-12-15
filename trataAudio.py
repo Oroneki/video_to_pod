@@ -12,12 +12,14 @@ import tempfile
 from model import Podcast
 from datetime import datetime
 from subprocess import run, PIPE
+import pathlib
 
 from feed import pasta
 from grab import pasta_download
 from algoritmos import main as algmain, labels_from_0e1s
 from matematicas import AudioFile
 
+TMP_DIR = os.environ.get('TEMPORARIO_DIR', None)
 
 arquivo_modelo = os.environ.get('ARQUIVO_MODELO', None)
 if not arquivo_modelo:
@@ -45,12 +47,20 @@ def smoothSeq(seq, step):
     return np.array(new_seq)
 
 
-def facaAmagica(arquivo_de_audio, novo_nome, log_png=True, log_output_labels=True, keep_integral_ogg_file=False):
+def facaAmagica(arquivo_de_audio, 
+    novo_nome, 
+    log_png=True, 
+    log_output_labels=True, 
+    keep_files = False
+    ):
 
-    arquivo_de_audio, tmp_dir = fmpeg_convert_to_ogg(
-        arquivo_de_audio, novo_nome + '_integral.ogg')
-    if keep_integral_ogg_file:
-        shutil.copy(arquivo_de_audio, pasta_download)
+    PASTA_TEMP = pathlib.Path(TMP_DIR).joinpath(novo_nome)
+    PASTA_TEMP.mkdir()   
+
+    arquivo_de_audio = fmpeg_convert_to_ogg(
+        arquivo_de_audio, 
+        novo_nome + '_integral.ogg',
+        PASTA_TEMP)
 
     rate = sf.info(arquivo_de_audio).samplerate
     channels = sf.info(arquivo_de_audio).channels
@@ -73,8 +83,6 @@ def facaAmagica(arquivo_de_audio, novo_nome, log_png=True, log_output_labels=Tru
         labels_from_0e1s(decisao_seq, os.path.join(
             pasta_log, novo_nome + '_labels.txt'))
     if log_png:
-        import matplotlib
-        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         plt.figure(figsize=(12, 4))
         plt.plot(seq_diff, 'y-', alpha=0.8)
@@ -83,39 +91,41 @@ def facaAmagica(arquivo_de_audio, novo_nome, log_png=True, log_output_labels=Tru
 
     block_gen = sf.blocks(arquivo_de_audio, blocksize=rate)
 
-    dst = os.path.join(pasta, novo_nome + '.mp3')
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        print('created temporary directory', tmpdirname)
-        src = os.path.join(tmpdirname, 'f.ogg')
-        sffile = sf.SoundFile(
-            src,
-            'w',
-            samplerate=rate,
-            channels=channels,
-            format='ogg',
-            subtype='vorbis',
-            endian=endian
-        )
+    # arquivo final mp3
+    src = str(PASTA_TEMP.joinpath('final_cortado.ogg'))
+    dst = str(os.path.join(pasta, novo_nome + '.mp3'))
 
-        print('iterar novamente')
+    sffile = sf.SoundFile(
+        src,
+        'w',
+        samplerate=rate,
+        channels=channels,
+        format='ogg',
+        subtype='vorbis',
+        endian=endian
+    )
 
-        # print('ufa... gravar audio.')
-        for i, bl in enumerate(block_gen):
-            if decisao_seq[i] == 1:
-                continue
-            # print(bl)
-            # sys.exit()
-            sffile.write(bl)
-            if i % 80 == 0:
-                time.sleep(.01)
-                print('.', end='')
-        sffile.close()
+    print('iterar novamente')
 
-        mp3_convert = convertToMP3(src, tmpdirname)
+    # print('ufa... gravar audio.')
+    for i, bl in enumerate(block_gen):
+        if decisao_seq[i] == 1:
+            continue
+        # print(bl)
+        # sys.exit()
+        sffile.write(bl)
+        if i % 80 == 0:
+            time.sleep(.01)
+            print('.', end='')
+    sffile.close()
 
-        shutil.move(mp3_convert, dst)
+    mp3_convert = convertToMP3(src, PASTA_TEMP)
 
-        tmp_dir.cleanup()
+    shutil.move(mp3_convert, dst)
+
+    if not keep_files:
+        shutil.rmtree(PASTA_TEMP)
+
     return dst
 
 
@@ -137,10 +147,9 @@ def transformarEAtualizar():
         pod.save()
 
 
-def fmpeg_convert_to_ogg(intro_file, novo_nome):
-    dire = tempfile.TemporaryDirectory()
-
-    dst = os.path.join(dire.name, novo_nome)
+def fmpeg_convert_to_ogg(intro_file, novo_nome, dir_):
+    
+    dst = str(dir_.joinpath(novo_nome))
 
     ll = [
         ffcmd,
@@ -153,12 +162,12 @@ def fmpeg_convert_to_ogg(intro_file, novo_nome):
 
     run(ll, stdout=PIPE)
 
-    return dst, dire
+    return dst
 
 
 def convertToMP3(intro_file, dirname):
 
-    outfile = os.path.join(dirname, 'output.mp3')
+    outfile = str(dirname.joinpath('output.mp3'))
 
     ll = [
         ffcmd,
@@ -184,7 +193,7 @@ def teste_magic(arquivo_baixado):
     print(datetime.now())
     print('Arquivo baixado:', arquivo_baixado)
     dst = facaAmagica(arquivo_baixado, 'teste' +
-                      datetime.now().strftime(r'%y%j%H_%M_%S'), keep_integral_ogg_file=True)
+                      datetime.now().strftime(r'%y%j%H_%M_%S'), keep_files=True)
     print(datetime.now())
     print(dst)
 
