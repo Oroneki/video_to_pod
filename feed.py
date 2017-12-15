@@ -27,7 +27,8 @@ def makeFeed(pasta):
         fe.guid(pod.youtube_id)
         fe.title(pod.nome.replace(', com Reinaldo Azevedo -', ''))
         fe.link(href=f'{server_end}/{pod.arquivo_podcast}')
-        fe.description(f'O É da Coisa - BandNewsFM.\n{pod.nome}\n{pod.youtube_id}\n{pod.segundos_cortados/60} minutos cortados.')
+        corte = int(pod.segundos_cortados) / 60
+        fe.description(f'O É da Coisa - BandNewsFM.\n{pod.nome}\n{pod.youtube_id}\n{corte:.2f} minutos cortados.')
 
     fg.rss_file(endereco_feed)
     return nome_arquivo_xml
