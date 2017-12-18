@@ -36,7 +36,7 @@ pasta_log = os.environ.get('PASTA_LOG', None)
 if not pasta_log:
     pasta_log = pasta_download
 
-ffcmd = os.environ.get('FFMPEG_3_PATH', 'ffmpeg')
+ffcmd = os.path.join(os.environ.get('FFMPEG_3_PATH', None),'ffmpeg')
 
 
 def smoothSeq(seq, step):

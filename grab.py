@@ -37,6 +37,7 @@ def atualizaListaYouTube():
             print(pod)
             pod.save()
 
+    print('x')
     return col
 
 
