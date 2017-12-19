@@ -129,17 +129,26 @@ def facaAmagica(arquivo_de_audio,
     print('iterar novamente')
     d1 = datetime.now()
     # print('ufa... gravar audio.')
+    numero_de_blocos = 0
     for i, bl in enumerate(block_gen):
-        if decisao_seq[i] == 1:
+        corta = False
+        numero_de_blocos = numero_de_blocos + 1
+        try:
+            corta = decisao_seq[i] == 1
+        except:
+            continue
+        if corta:
             continue
         # print(bl)
         # sys.exit()
         sffile.write(bl)
-        if i % 80 == 0:
+        if i % 200 == 0:
             time.sleep(.01)
             print('.', end='')
     sffile.close()
     stats['05_cria_ogg_cortado'] = str(datetime.now() - d1)
+    stats['050_numero_de_blocos'] = numero_de_blocos
+    stats['050_len_decisao_seq'] = len(decisao_seq)
 
     d1 = datetime.now()
     mp3_convert = convertToMP3(src, PASTA_TEMP)
