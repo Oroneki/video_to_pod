@@ -72,6 +72,8 @@ def baixarNovos(pasta_downloads):
         for arq in la:
             if not arq.startswith('REI_'):
                 continue
+            if arq.endswith('.part'):
+                continue
             for id_ in lista_ids:
                 if id_ in arq:
                     pod = Podcast.get(Podcast.youtube_id == id_)

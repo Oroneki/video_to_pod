@@ -1,22 +1,29 @@
+import numpy as np
+from sklearn.externals import joblib
+import soundfile as sf
+
+from sklearn import preprocessing as pp
+# from sklearn.ensemble import RandomForestClassifier as RFC
+import sys
 import os
 import shutil
 import sys
 import tempfile
 import time
 from datetime import datetime
-from subprocess import PIPE, run
-import librosa
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import soundfile as sf
-from sklearn import preprocessing as pp
-from sklearn.externals import joblib
+from subprocess import run, PIPE
+import pathlib
+import random
+import string
+import json
 
 from algoritmos import main as algmain
 from feed import pasta
 from grab import pasta_download
-from model import Podcast
+from algoritmos import main as algmain, labels_from_0e1s
+from matematicas import AudioFile
+
+TMP_DIR = os.environ.get('TEMPORARIO_DIR', None)
 
 arquivo_modelo = os.environ.get('ARQUIVO_MODELO', None)
 if not arquivo_modelo:
@@ -44,109 +51,117 @@ def smoothSeq(seq, step):
     return np.array(new_seq)
 
 
-def decisaoSimples(seq_prob_ok, seq_prob_not_ok, seq_silencio):
-    if not len(seq_prob_ok) == len(seq_prob_not_ok) == len(seq_silencio):
-        print('Sequencias devem ser iguais')
-        return None
-    nova_seq = []
-    for b, r, s in zip(seq_prob_ok, seq_prob_not_ok, seq_silencio):
-        if s > 0.85:
-            nova_seq.append(0)
-            continue
-        if r - b > 0.15:
-            nova_seq.append(0)
-            continue
-        else:
-            if b > 0.6:
-                nova_seq.append(1)
-                continue
-            else:
-                if r > 0.6:
-                    nova_seq.append(0)
-                    continue
-                else:
-                    nova_seq.append(1)
-                    continue
-    return nova_seq
+def facaAmagica(arquivo_de_audio, 
+    novo_nome, 
+    log_png=True, 
+    log_output_labels=True, 
+    keep_files = False
+    ):
 
+    stats = {}
 
-def facaAmagica(arquivo_de_audio, novo_nome):
+    
 
-    arquivo_de_audio, tmp_dir = fmpeg_convert_to_ogg(arquivo_de_audio)
+    rand = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+    PASTA_TEMP = pathlib.Path(TMP_DIR).joinpath(novo_nome + '_' + rand)
+    PASTA_TEMP.mkdir()   
 
-    rfc = joblib.load(arquivo_modelo)  # atualizar modelo
+    d1 = datetime.now()
+    arquivo_de_audio = fmpeg_convert_to_ogg(
+        arquivo_de_audio,
+        'integral.ogg',
+        PASTA_TEMP)
+    stats['00_ogg'] = str(datetime.now() - d1)
+
+    
+
     rate = sf.info(arquivo_de_audio).samplerate
     channels = sf.info(arquivo_de_audio).channels
     endian = sf.info(arquivo_de_audio).endian
-    block_gen = sf.blocks(arquivo_de_audio, blocksize=rate)
-    tudo = []
-    print('Iterando pelos blocos...')
-    for u, bl in enumerate(block_gen):
-        y = np.mean(bl, axis=1)
-        m1 = librosa.feature.melspectrogram(y)
-        lis = []
-        for el in m1:
-            lis.append(el.mean())
-        tudo.append(lis)
-        time.sleep(.005)
-        if u % 10 == 0:
-            print('.', end='')
-        if u % 1500 == 0:
-            print('!', end='\n')
-
-    max_blocks = len(tudo)
-    print(max_blocks, 'blocos.')
-    mm = pp.MinMaxScaler()
-    tudo = mm.fit_transform(np.array(tudo).transpose()).transpose()
-    print('transfomando pra escalar')
-    probs = rfc.predict_proba(tudo)
-    print('Array com probabilidades ok')
-    dfprobs = pd.DataFrame(probs, columns=rfc.classes_)
-    print('dataframe')
-    seq_diff = dfprobs['COMERCIAL'] + dfprobs['SILENCIO'] - dfprobs['REI']
+    d1 = datetime.now()
+    rfc = joblib.load(arquivo_modelo)
+    
+    stats['01_carrega_modelo'] = str(datetime.now() - d1)
+    # -----------------------------------------------------------
+    d1 = datetime.now()
+    audio_file_obj_inst = AudioFile(arquivo_de_audio)
+    audio_file_obj_inst._lazy_load()
+    stats['02_carrega_audio'] = str(datetime.now() - d1)
+    d1 = datetime.now()
+    probas = audio_file_obj_inst.array_of_probas(
+        modelo=rfc,
+        scaler=pp.MaxAbsScaler()
+    )
+    stats['03_calcula_probas'] = str(datetime.now() - d1)
+    seq_diff = probas[4] + probas[1] - probas[0]
+    d1 = datetime.now()
     decisao_seq = algmain(seq_diff)
-    print('temos a sequencia de 0 e 1s')
+    stats['04_calcula_0e1s'] = str(datetime.now() - d1)
+    print('temos a sequencia de 0 e 1s')    
+    stats['segundos_cortados'] = np.count_nonzero(decisao_seq)    
+    # -------------------------------------------------
+    if log_output_labels:
+        labels_from_0e1s(decisao_seq, os.path.join(
+            pasta_log, novo_nome + '_labels.txt'))
+    if log_png:
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(12, 4))
+        plt.plot(seq_diff, 'y-', alpha=0.8)
+        plt.plot(decisao_seq, 'r-', alpha=1)
+        plt.savefig(os.path.join(pasta_log, novo_nome + '.png'))
 
-    plt.figure(figsize=(16, 6))
-    plt.plot(seq_diff, 'y-', alpha=0.8)
-    plt.plot(decisao_seq, 'r-', alpha=1)
-    plt.savefig(os.path.join(pasta_log, novo_nome + '.png'))
 
     block_gen = sf.blocks(arquivo_de_audio, blocksize=rate)
 
-    dst = os.path.join(pasta, novo_nome + '.mp3')
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        print('created temporary directory', tmpdirname)
-        src = os.path.join(tmpdirname, 'f.ogg')
-        sffile = sf.SoundFile(
-            src,
-            'w',
-            samplerate=rate,
-            channels=channels,
-            format='ogg',
-            subtype='vorbis',
-            endian=endian
-        )
+    # arquivo final mp3
+    src = str(PASTA_TEMP.joinpath('cortado.ogg'))
+    dst = str(os.path.join(pasta, novo_nome + '.mp3'))
 
-        print('iterar novamente')
+    sffile = sf.SoundFile(
+        src,
+        'w',
+        samplerate=rate,
+        channels=channels,
+        format='ogg',
+        subtype='vorbis',
+        endian=endian
+    )
 
-        # print('ufa... gravar audio.')
-        for i, bl in enumerate(block_gen):
-            if decisao_seq[i] == 1:
-                continue
-            # print(bl)
-            # sys.exit()
-            sffile.write(bl)
-            if i % 80 == 0:
-                time.sleep(.01)
-                print('.', end='')
-        sffile.close()
+    print('iterar novamente')
+    d1 = datetime.now()
+    # print('ufa... gravar audio.')
+    numero_de_blocos = 0
+    for i, bl in enumerate(block_gen):
+        corta = False
+        numero_de_blocos = numero_de_blocos + 1
+        try:
+            corta = decisao_seq[i] == 1
+        except:
+            continue
+        if corta:
+            continue
+        # print(bl)
+        # sys.exit()
+        sffile.write(bl)
+        if i % 200 == 0:
+            time.sleep(.01)
+            print('.', end='')
+    sffile.close()
+    stats['05_cria_ogg_cortado'] = str(datetime.now() - d1)
+    stats['050_numero_de_blocos'] = numero_de_blocos
+    stats['050_len_decisao_seq'] = len(decisao_seq)
 
-        mp3_convert = convertToMP3(src, tmpdirname)
+    d1 = datetime.now()
+    mp3_convert = convertToMP3(src, PASTA_TEMP)
+    stats['06_converte_mp3'] = str(datetime.now() - d1)
+    shutil.move(mp3_convert, dst)
 
-        shutil.move(mp3_convert, dst)
-        tmp_dir.cleanup()
-    return dst
+    if not keep_files:
+        shutil.rmtree(PASTA_TEMP)
+
+    stats['PASTA_TEMP'] = str(PASTA_TEMP)
+    return dst, stats
+
 
 
 def transformarEAtualizar():
@@ -157,20 +172,20 @@ def transformarEAtualizar():
             pod.data.day,
             'edacoisa'
         )
-        print(new_file)
-        pod_file = facaAmagica(
+
+        pod_file, stats = facaAmagica(
             os.path.join(pasta_download, pod.arquivo_baixado),
             new_file
         )
         pod.arquivo_podcast = os.path.basename(pod_file)
         pod.fase = 2
+        pod.stats = json.dumps(stats)
         pod.save()
 
 
-def fmpeg_convert_to_ogg(intro_file):
-    dire = tempfile.TemporaryDirectory()
-
-    dst = os.path.join(dire.name, 'temp_media.ogg')
+def fmpeg_convert_to_ogg(intro_file, novo_nome, dir_):
+    
+    dst = str(dir_.joinpath(novo_nome))
 
     ll = [
         ffcmd,
@@ -183,21 +198,24 @@ def fmpeg_convert_to_ogg(intro_file):
 
     run(ll, stdout=PIPE)
 
-    return dst, dire
+    return dst
+
 
 
 def convertToMP3(intro_file, dirname):
 
-    outfile = os.path.join(dirname, 'output.mp3')
+    outfile = str(dirname.joinpath('output.mp3'))
 
     ll = [
         ffcmd,
         '-i',
         intro_file,
+        '-ar',
+        '22050',
         '-codec:a',
         'libmp3lame',
         '-qscale:a',
-        '7',
+        '9',
         '-filter:a',  # apenas pra ffmpeg acima da versao 3
         'loudnorm=I=-5',  # esse tb
         outfile
@@ -208,11 +226,16 @@ def convertToMP3(intro_file, dirname):
     return outfile
 
 
-def main():
+def teste_magic(arquivo_baixado):
     print(datetime.now())
-    transformarEAtualizar()
+    print('Arquivo baixado:', arquivo_baixado)
+    dst, stats = facaAmagica(arquivo_baixado, 't_' +
+                      datetime.now().strftime(r'%y_%j_%H_%M_%S'), keep_files=True)
     print(datetime.now())
+    print(dst)
+    print(json.dumps(stats, sort_keys=True, indent=2))
+
 
 
 if __name__ == '__main__':
-    main()
+    teste_magic(sys.argv[1])
