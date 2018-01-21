@@ -1,4 +1,6 @@
 
+from handleenv import handleenv
+handleenv()
 from grab import atualizaListaYouTube, baixarNovos, pasta_download
 from trataAudio import transformarEAtualizar
 from feed import makeFeed, pasta
