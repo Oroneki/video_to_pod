@@ -1,7 +1,7 @@
-
+from handleenv import handleenv
+handleenv()
 import os
 from datetime import datetime as dt
-
 from feed import makeFeed, pasta
 from grab import atualizaListaYouTube, baixarNovos, pasta_download
 from trataAudio import transformarEAtualizar
@@ -40,8 +40,9 @@ def main():
         print('TEMPO  :', h5-h1, sep ="\t")
         end = os.environ.get('SERVER_END')
         print(f'''\nACESSE EM:\n{end}/{xml}\n''')
-    except:
+    except Exception as exc:
         import sys
+        print(exc)
         print('Erro!', sys.exc_info()[0])
     finally:
         os.remove(CONTROL_FILE)

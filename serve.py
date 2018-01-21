@@ -1,3 +1,5 @@
+from handleenv import handleenv
+handleenv()
 import http.server
 import os
 import socketserver
