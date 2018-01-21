@@ -16,7 +16,7 @@ def atualizaListaYouTube():
     reg_id = re.compile(r"\/watch\?v=(?P<id>.*)")
 
     r = requests.get(
-        "https://www.youtube.com/channel/UCWijW6tW0iI5ghsAbWDFtTg/videos")
+        "https://www.youtube.com/channel/UCWijW6tW0iI5ghsAbWDFtTg/videos", verify=False)
     soup = BS4(r.content, "html.parser")
     col = soup.find_all(text=reg_search)
 
@@ -52,7 +52,8 @@ def baixaLista(pasta_downloads, lista_de_ids_):
         'outtmpl': str(os.path.join(pasta_downloads, 'REI_%(id)s.%(ext)s')),
         'postprocessors': [{
             'key': 'FFmpegExtractAudio'
-        }]
+        }],
+        'nocheckcertificate': True,
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download(lista_de_ids_)
