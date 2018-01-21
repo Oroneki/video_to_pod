@@ -54,6 +54,7 @@ def baixaLista(pasta_downloads, lista_de_ids_):
             'key': 'FFmpegExtractAudio'
         }],
         'nocheckcertificate': True,
+        'ffmpeg_location': os.environ['FFMPEG_3_PATH'],
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download(lista_de_ids_)
