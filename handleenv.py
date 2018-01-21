@@ -14,6 +14,7 @@ def handleenv(env=".env"):
             continue
         print(str(l[0]), str(l[1]), sep=" -> ")
         os.environ.setdefault(str(l[0]), str(l[1]))
+    os.environ.setdefault("ffmpeg", os.environ.get('FFMPEG_3_PATH', 'ffmpeg'))
 
 
 if __name__ == '__main__':
