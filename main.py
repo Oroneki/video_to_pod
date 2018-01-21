@@ -1,10 +1,4 @@
 
-from os.path import join, dirname
-from dotenv import load_dotenv
-
-dotenv_path = join(dirname(__file__), '.env')
-load_dotenv(dotenv_path)
-
 from grab import atualizaListaYouTube, baixarNovos, pasta_download
 from trataAudio import transformarEAtualizar
 from feed import makeFeed, pasta
@@ -12,7 +6,6 @@ from datetime import datetime as dt
 import os
 import tempfile
 import pathlib
-
 
 CONTROL_FILE = os.path.join(tempfile.gettempdir(),'oroneki_video_to_pod.oro')
 
