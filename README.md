@@ -24,11 +24,13 @@
 >```python treinador.py```
 3. Gerar o arquivo .env e **editar as variáveis de sistema** de acordo com seu ambiente (instruções no próprio arquivo - vide abaixo)
 >```cp .env.example .env```
-4. Rodar o programa para preparar tudo:
+
+## Pra rodar
+1. Baixar, extrair audio, converter, compactar e atualizar feed:
 >```python main.py```
-5. Depois é só servir
+2. Servir o feed RSS do podcast:
 >```python serve.py```
-6. Enjoy :)
+3. Enjoy :)
 
 ***
 
