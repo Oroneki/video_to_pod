@@ -1,6 +1,7 @@
 import os
 import json
 from model import Podcast
+from feedgen.feed import FeedGenerator
 
 pasta = os.environ['PASTA_SERVER']
 server_end = os.environ['SERVER_END']
