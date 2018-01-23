@@ -42,8 +42,11 @@ def main():
         print(f'''\nACESSE EM:\n{end}/{xml}\n''')
     except Exception as exc:
         import sys
+        import logging
+        logging.basicConfig(format='[%(asctime)s %(lineno)3s] %(message)s', level="INFO", datefmt="%d/%m %H:%M:%S")
         print(exc)
         print('Erro!', sys.exc_info()[0])
+        logging.exception('')
     finally:
         os.remove(CONTROL_FILE)
         print('FIM')

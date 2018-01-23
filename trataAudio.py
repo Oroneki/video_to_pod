@@ -22,6 +22,7 @@ from feed import pasta
 from grab import pasta_download
 from algoritmos import main as algmain, labels_from_0e1s
 from matematicas import AudioFile
+from model import Podcast
 
 TMP_DIR = os.environ.get('TEMPORARIO_DIR', None)
 
