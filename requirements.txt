@@ -4,7 +4,7 @@ certifi==2017.11.5
 cffi==1.11.4
 chardet==3.0.4
 cycler==0.10.0
-feedgen==0.6.1
+feedgen==0.9.0
 idna==2.6
 lxml==4.1.1
 matplotlib==2.1.1
